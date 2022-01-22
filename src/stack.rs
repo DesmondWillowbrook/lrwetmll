@@ -13,10 +13,8 @@ pub struct Stack<T> {
 
 impl<T> Drop for Stack<T> {
     fn drop(&mut self) {
-		eprintln!("Calling drop!");
         while let Some(mut h) = mem::take(&mut self.head) {
 			mem::swap(&mut self.head, &mut h.prev);
-			drop(h);
 		}
     }
 }
@@ -34,22 +32,14 @@ impl<T> Stack<T> {
 	}
 
 	pub fn pop (&mut self) -> Option<T> {
-		match mem::take(&mut self.head) {
-			Some(head) => {
-				self.head = head.prev;
-				head.val
-			},
-			None => None,
-		}
+		mem::take(&mut self.head).and_then (|head| {
+			self.head = head.prev;
+			head.val
+		})
 	}
 
 	pub fn top (&self) -> Option<&T> {
-		if let Some(h) = &self.head {
-			if let Some(v) = &h.val {
-				return Some(v)
-			}
-		}
-		None
+		self.head.as_ref().and_then(|f| f.val.as_ref())
 	}
 }
 
